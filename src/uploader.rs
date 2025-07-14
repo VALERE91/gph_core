@@ -1,7 +1,7 @@
 use crate::error::Result;
 use std::path::Path;
 
-pub fn upload_build(file_path: &Path, presigned_url: &str) -> Result<()> {
+pub fn upload_build(file_path: &Path, _presigned_url: &str) -> Result<()> {
     println!(
         "Uploading {} to a presigned URL...",
         file_path.display()

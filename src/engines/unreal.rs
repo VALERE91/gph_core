@@ -1,9 +1,8 @@
 // Implementation of the GameEngine trait for Unreal Engine.
 use crate::config::ProjectConfig;
 use crate::engine::{GameEngine, ProjectInfo};
-use crate::error::{Error, Result};
+use crate::error::Result;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use walkdir::WalkDir;
 
 pub struct UnrealEngine {

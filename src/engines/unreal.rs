@@ -16,7 +16,7 @@ impl UnrealEngine {
         } else {
             path.join("Engine/Build/BatchFiles/RunUAT.sh")
         };
-        
+
         Self {
             uat_path
         }
@@ -55,18 +55,18 @@ impl GameEngine for UnrealEngine {
 
         let uproject_path = &project_info.path;
 
-        let platfrom = if cfg!(windows) {
+        let platform = if cfg!(windows) {
             "-platform=Win64"
         } else {
             "-platform=Mac"
         };
-        
+
         let status = Command::new(&self.uat_path)
             .arg("BuildCookRun")
             .arg(format!("-project={}", uproject_path.to_str().unwrap()))
             .arg("-build")
             .arg("-clientconfig=Development") // Or Shipping
-            .arg(platfrom)
+            .arg(platform)
             .arg("-nocompileeditor")
             .arg("-unattended")
             .arg("-stdout")
@@ -91,6 +91,12 @@ impl GameEngine for UnrealEngine {
 
         let uproject_path = &project_info.path;
 
+        let platform = if cfg!(windows) {
+            "-platform=Win64"
+        } else {
+            "-platform=Mac"
+        };
+        
         let status = Command::new(&self.uat_path)
             .arg("BuildCookRun")
             .arg(format!("-project={}", uproject_path.to_str().unwrap()))

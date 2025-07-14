@@ -104,7 +104,7 @@ impl GameEngine for UnrealEngine {
             .arg(format!("-archivedirectory={}", output_dir.to_str().unwrap()))
             .arg("-package")
             .arg("-clientconfig=Development") // Or Shipping
-            .arg("-platform=Win64") // Or Mac, Linux
+            .arg(platform) // Or Mac, Linux
             .arg("-nocompileeditor")
             .arg("-unattended")
             .arg("-stdout")

@@ -97,6 +97,7 @@ impl GameEngine for UnrealEngine {
             "-platform=Mac"
         };
         
+        
         let status = Command::new(&self.uat_path)
             .arg("BuildCookRun")
             .arg(format!("-project={}", uproject_path.to_str().unwrap()))

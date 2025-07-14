@@ -1,3 +1,4 @@
+use crate::config::ProjectConfig;
 use crate::engine::{GameEngine, ProjectInfo};
 use crate::error::{Error, Result};
 use std::path::{Path, PathBuf};
@@ -36,25 +37,20 @@ impl GameEngine for UnityEngine {
         Ok(projects)
     }
 
-    fn build_project(&self, project_info: &ProjectInfo) -> Result<()> {
+    fn build_project(&self, project_info: &ProjectInfo, _project_config: &ProjectConfig) -> Result<()> {
         println!("Building Unity project: {}", &project_info.name);
-        // TODO: Implement command execution with Unity's command line arguments.
-        // Example:
-        // Command::new(&self.executable_path)
-        //     .arg("-batchmode")
-        //     .arg("-quit")
-        //     .arg("-projectPath")
-        //     .arg(project_info.path.to_str().unwrap())
-        //     .arg("-executeMethod")
-        //     .arg("MyEditorScript.PerformBuild") // You need a C# script in Unity to trigger the build
-        //     .status()?;
+        // TODO: Use project_config to allow for custom build commands.
         Ok(())
     }
 
-    fn package_project(&self, project_info: &ProjectInfo, output_dir: &Path) -> Result<PathBuf> {
+    fn package_project(
+        &self,
+        project_info: &ProjectInfo,
+        _project_config: &ProjectConfig,
+        output_dir: &Path,
+    ) -> Result<PathBuf> {
         println!("Packaging Unity project: {}", &project_info.name);
-        // Packaging in Unity is typically handled by the same build script.
-        // This function might just confirm the output exists.
+        // TODO: Use project_config to allow for custom package commands.
         let packaged_path = output_dir.join(&project_info.name);
         Ok(packaged_path)
     }

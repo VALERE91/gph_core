@@ -8,7 +8,7 @@ pub enum Error {
     Io(#[from] io::Error),
 
     #[error("Configuration file error: {0}")]
-    Config(#[from] toml::de::Error),
+    Config(String),
 
     #[error("Failed to execute command for {engine}: {source}")]
     CommandExecution {
@@ -25,6 +25,9 @@ pub enum Error {
 
     #[error("Engine executable not found at path: {path}")]
     EngineNotFound { path: PathBuf },
+
+    #[error("Project already initialized at {path}")]
+    AlreadyInitialized { path: PathBuf },
 }
 
 pub type Result<T> = anyhow::Result<T, Error>;

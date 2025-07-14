@@ -1,5 +1,6 @@
-use std::path::{Path, PathBuf};
+use crate::config::ProjectConfig;
 use crate::error::Result;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct ProjectInfo {
@@ -17,8 +18,13 @@ pub trait GameEngine: Send + Sync {
     fn detect_projects(&self, search_dir: &Path) -> Result<Vec<ProjectInfo>>;
 
     /// Executes the build command for a given project.
-    fn build_project(&self, project_info: &ProjectInfo) -> Result<()>;
+    fn build_project(&self, project_info: &ProjectInfo, project_config: &ProjectConfig) -> Result<()>;
 
     /// Packages the project for distribution.
-    fn package_project(&self, project_info: &ProjectInfo, output_dir: &Path) -> Result<PathBuf>;
+    fn package_project(
+        &self,
+        project_info: &ProjectInfo,
+        project_config: &ProjectConfig,
+        output_dir: &Path,
+    ) -> Result<PathBuf>;
 }

@@ -1,3 +1,5 @@
+// Implementation of the GameEngine trait for Unreal Engine.
+use crate::config::ProjectConfig;
 use crate::engine::{GameEngine, ProjectInfo};
 use crate::error::{Error, Result};
 use std::path::{Path, PathBuf};
@@ -27,7 +29,11 @@ impl GameEngine for UnrealEngine {
             .filter(|e| e.file_name().to_string_lossy().ends_with(".uproject"))
         {
             let path = entry.path().to_path_buf();
-            let name = path.file_stem().unwrap_or_default().to_string_lossy().to_string();
+            let name = path
+                .file_stem()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string();
             projects.push(ProjectInfo {
                 name,
                 path,
@@ -37,28 +43,21 @@ impl GameEngine for UnrealEngine {
         Ok(projects)
     }
 
-    fn build_project(&self, project_info: &ProjectInfo) -> Result<()> {
+    fn build_project(&self, project_info: &ProjectInfo, _project_config: &ProjectConfig) -> Result<()> {
         println!("Building Unreal project: {}", &project_info.name);
-        // TODO: Implement the command execution logic.
-        // Example:
-        // let status = Command::new(&self.uat_path)
-        //     .arg("BuildCookRun")
-        //     .arg(format!("-project={}", project_info.path.to_str().unwrap()))
-        //     .arg("-build")
-        //     // ... other necessary args
-        //     .status()
-        //     .map_err(|e| Error::CommandExecution { engine: self.name().to_string(), source: e })?;
-        //
-        // if !status.success() {
-        //     return Err(Error::BuildFailed { project_path: project_info.name.clone() });
-        // }
+        // TODO: Use project_config to allow for custom build commands.
+        // let command = &project_config.build_command;
         Ok(())
     }
 
-    fn package_project(&self, project_info: &ProjectInfo, output_dir: &Path) -> Result<PathBuf> {
+    fn package_project(
+        &self,
+        project_info: &ProjectInfo,
+        _project_config: &ProjectConfig,
+        output_dir: &Path,
+    ) -> Result<PathBuf> {
         println!("Packaging Unreal project: {}", &project_info.name);
-        // TODO: Implement the command execution logic for packaging.
-        // This is often part of the BuildCookRun command.
+        // TODO: Use project_config to allow for custom package commands.
         let packaged_path = output_dir.join(&project_info.name);
         Ok(packaged_path)
     }

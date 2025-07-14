@@ -4,13 +4,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// Global configuration for the user (e.g., in ~/.config/gph/config.toml)
-#[derive(Deserialize, Debug, Default)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct GlobalConfig {
     pub engine_paths: EnginePaths,
     pub auth_token: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct EnginePaths {
     pub unreal: Option<PathBuf>,
     pub unity: Option<PathBuf>,
@@ -18,9 +18,20 @@ pub struct EnginePaths {
 }
 
 impl GlobalConfig {
+    /// Loads the global config from a specific path.
     pub fn load(path: &Path) -> crate::Result<Self> {
         let content = fs::read_to_string(path)?;
-        toml::from_str(&content).map_err(|e| Error::Config(e.to_string()))
+        toml::from_str(&content).map_err(|e| crate::error::Error::Config(e.to_string()))
+    }
+
+    /// Saves the global config to a specific path, creating parent dirs if needed.
+    pub fn save(&self, path: &Path) -> crate::Result<()> {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        let content = toml::to_string_pretty(self).map_err(|e| crate::error::Error::Config(e.to_string()))?;
+        fs::write(path, content)?;
+        Ok(())
     }
 }
 
@@ -39,12 +50,15 @@ impl ProjectConfig {
     pub fn load(project_root: &Path) -> crate::Result<Self> {
         let config_path = project_root.join(".gph").join("config.toml");
         let content = fs::read_to_string(config_path)?;
-        toml::from_str(&content).map_err(|e| Error::Config(e.to_string()))
+        toml::from_str(&content).map_err(|e| crate::error::Error::Config(e.to_string()))
     }
 
     pub fn save(&self, project_root: &Path) -> crate::Result<()> {
         let config_path = project_root.join(".gph").join("config.toml");
-        let content = toml::to_string_pretty(self).map_err(|e| Error::Config(e.to_string()))?;
+        if let Some(parent) = config_path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        let content = toml::to_string_pretty(self).map_err(|e| crate::error::Error::Config(e.to_string()))?;
         fs::write(config_path, content)?;
         Ok(())
     }

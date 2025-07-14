@@ -10,6 +10,15 @@ pub enum Error {
     #[error("Configuration file error: {0}")]
     Config(String),
 
+    #[error("Project configuration not found at {path}. Please run `gph init` first.")]
+    ProjectConfigNotFound { path: PathBuf },
+
+    #[error("Engine type not specified in project config. Please set `engine_type` in `.gph/config.toml`.")]
+    EngineTypeNotSpecified,
+
+    #[error("Unsupported or unconfigured engine type: {0}")]
+    UnsupportedEngine(String),
+
     #[error("Failed to execute command for {engine}: {source}")]
     CommandExecution {
         engine: String,

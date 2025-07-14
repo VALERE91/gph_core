@@ -1,8 +1,8 @@
-// Implementation of the GameEngine trait for Unreal Engine.
 use crate::config::ProjectConfig;
 use crate::engine::{GameEngine, ProjectInfo};
-use crate::error::Result;
+use crate::error::{Error, Result};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use walkdir::WalkDir;
 
 pub struct UnrealEngine {
@@ -10,8 +10,16 @@ pub struct UnrealEngine {
 }
 
 impl UnrealEngine {
-    pub fn new(uat_path: PathBuf) -> Self {
-        Self { uat_path }
+    pub fn new(path: &PathBuf) -> Self {
+        let uat_path = if cfg!(windows) {
+            path.join("Engine/Build/BatchFiles/RunUAT.bat")
+        } else {
+            path.join("Engine/Build/BatchFiles/RunUAT.sh")
+        };
+        
+        Self {
+            uat_path
+        }
     }
 }
 
@@ -44,8 +52,32 @@ impl GameEngine for UnrealEngine {
 
     fn build_project(&self, project_info: &ProjectInfo, _project_config: &ProjectConfig) -> Result<()> {
         println!("Building Unreal project: {}", &project_info.name);
-        // TODO: Use project_config to allow for custom build commands.
-        // let command = &project_config.build_command;
+
+        let uproject_path = &project_info.path;
+
+        let platfrom = if cfg!(windows) {
+            "-platform=Win64"
+        } else {
+            "-platform=Mac"
+        };
+        
+        let status = Command::new(&self.uat_path)
+            .arg("BuildCookRun")
+            .arg(format!("-project={}", uproject_path.to_str().unwrap()))
+            .arg("-build")
+            .arg("-clientconfig=Development") // Or Shipping
+            .arg(platfrom)
+            .arg("-nocompileeditor")
+            .arg("-unattended")
+            .arg("-stdout")
+            .arg("-utf8output")
+            .status()
+            .map_err(|e| Error::CommandExecution { engine: self.name().to_string(), source: e })?;
+
+        if !status.success() {
+            return Err(Error::BuildFailed { project_path: project_info.name.clone() });
+        }
+
         Ok(())
     }
 
@@ -56,8 +88,29 @@ impl GameEngine for UnrealEngine {
         output_dir: &Path,
     ) -> Result<PathBuf> {
         println!("Packaging Unreal project: {}", &project_info.name);
-        // TODO: Use project_config to allow for custom package commands.
-        let packaged_path = output_dir.join(&project_info.name);
-        Ok(packaged_path)
+
+        let uproject_path = &project_info.path;
+
+        let status = Command::new(&self.uat_path)
+            .arg("BuildCookRun")
+            .arg(format!("-project={}", uproject_path.to_str().unwrap()))
+            .arg("-archive")
+            .arg(format!("-archivedirectory={}", output_dir.to_str().unwrap()))
+            .arg("-package")
+            .arg("-clientconfig=Development") // Or Shipping
+            .arg("-platform=Win64") // Or Mac, Linux
+            .arg("-nocompileeditor")
+            .arg("-unattended")
+            .arg("-stdout")
+            .arg("-utf8output")
+            .status()
+            .map_err(|e| Error::CommandExecution { engine: self.name().to_string(), source: e })?;
+
+        if !status.success() {
+            return Err(Error::BuildFailed { project_path: project_info.name.clone() });
+        }
+
+        // The actual output path might be a subdirectory, but for now we return the target dir
+        Ok(output_dir.to_path_buf())
     }
 }

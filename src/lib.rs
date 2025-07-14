@@ -14,7 +14,7 @@ use std::path::Path;
 /// Holds instances of all supported engine handlers.
 pub struct ProjectManager {
     engines: Vec<Box<dyn GameEngine>>,
-    global_config: GlobalConfig,
+    _global_config: GlobalConfig,
 }
 
 impl ProjectManager {
@@ -25,7 +25,7 @@ impl ProjectManager {
         if let Some(path) = &global_config.engine_paths.unreal {
             if path.exists() {
                 engines.push(Box::new(engines::unreal::UnrealEngine::new(
-                    path.clone(),
+                    path,
                 )));
             }
         }
@@ -42,12 +42,19 @@ impl ProjectManager {
 
         Self {
             engines,
-            global_config,
+            _global_config: global_config,
         }
     }
 
+    /// Finds a configured game engine handler by its name.
+    pub fn get_engine(&self, engine_type: &str) -> Option<&dyn GameEngine> {
+        self.engines
+            .iter()
+            .find(|e| e.name().to_lowercase().starts_with(&engine_type.to_lowercase()))
+            .map(|b| b.as_ref())
+    }
+
     /// Initializes a project directory by creating a `.gph/config.toml` file.
-    /// This corresponds to the `gph init` command.
     pub fn init_project(&self, project_dir: &Path) -> Result<ProjectConfig> {
         let gph_dir = project_dir.join(".gph");
         if gph_dir.exists() {
@@ -57,7 +64,6 @@ impl ProjectManager {
         }
         fs::create_dir(&gph_dir)?;
 
-        // Try to auto-detect the engine to give a better default config
         let projects = self.find_all_projects(project_dir)?;
         let engine_type = projects.first().map(|p| p.engine_type.clone());
 
@@ -74,18 +80,14 @@ impl ProjectManager {
     /// Detects all projects from all configured engines in a given directory.
     pub fn find_all_projects(&self, search_dir: &Path) -> Result<Vec<ProjectInfo>> {
         let mut all_projects = Vec::new();
-        println!("Detecting projects in: {}", search_dir.display());
         for engine in &self.engines {
-            println!("Checking for {} projects...", engine.name());
             match engine.detect_projects(search_dir) {
                 Ok(mut projects) => {
                     if !projects.is_empty() {
-                        println!("...found {} {} project(s).", projects.len(), engine.name());
                         all_projects.append(&mut projects);
                     }
                 }
                 Err(e) => {
-                    // Log the error but don't stop detection for other engines
                     eprintln!("Could not detect {} projects: {}", engine.name(), e);
                 }
             }
